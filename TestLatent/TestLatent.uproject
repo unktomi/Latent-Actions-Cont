@@ -1,0 +1,13 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "{9100E642-4F47-DC6E-E6D3-1CAF12CD765B}",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "TestLatent",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}
