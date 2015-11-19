@@ -7,5 +7,5 @@ TestCont Scene - Shows how to use Continuations to turn MediaPlayer::OpenURL int
 
 TestCoroutine Scene - Shows an example of Lua-like coroutines
 
-TestFork Scene - Shows and example of running latent actions in parallel with Fork and Join
+TestFork Scene - Shows an example of running latent actions in parallel with Fork and Join nodes
 
