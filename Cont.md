@@ -35,6 +35,6 @@ Here is an example of a normal return node:
 
 The below produces the same result via an explicit continuation:
 
-![](img/Cont0.PNG)
+![](img/Cont1.PNG)
 
-_Return Integer_ is a member function - which however itself does not return to its caller (hence it has no output pin). As you can see _Get Current Continuation_ gives you a _Continuation_ object that represents what will happen when the current function (in this case _foo_) returns. This object can be stored in a variable and otherwise passed around. It provides a bunch of _Return_ methods like _ReturnInteger_ that you can call later - when you do it's as if you jump back in time and return again from the function (i.e. in this case _foo_). You can actually do this more than once if you like and pass a different return value each time.
+Here _Return Integer_ is a function - which however itself does not return to its caller (hence it has no output pin). As you can see _Get Current Continuation_ gives you a _Continuation_ object that represents what will happen when the current function (in this case _Foo_) returns. This object can be stored in a variable and otherwise passed around. It provides a bunch of _Return_ methods like _ReturnInteger_ that you can call later - when you do it's as if you jump back in time and return again from the function (i.e. in this case _Foo_). You can actually do this more than once if you like and pass a different return value each time.
