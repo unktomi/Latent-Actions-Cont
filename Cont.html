@@ -1,0 +1,32 @@
+<h3>First class continuations in UE-4 Blueprints</h3>
+<p>UE-4 Blueprints have a concept called &quot;Latent Actions&quot;, one of the simplest being <em>Delay</em> shown below which suspends
+the current Blueprint for the specified number of seconds and then continues with whatever is connected to the <em>Completed</em> pin.</p>
+<p><img src="img/Delay.PNG" alt=""></p>
+<p>Currently all such latent actions show that clock icon.
+Here is another example from a plugin, which suspends the Blueprint during a network operation and then continues when the result is
+available:</p>
+<p><img src="img/ApplyURL.PNG" alt=""></p>
+<p>In UE-4.10, latent action nodes are only allowed at the top level of a Blueprint &quot;event graph&quot;. They become inaccessible inside of functions. This is unfortunate because you are forced to use essentially global variables in such cases, and since an event graph contains a bunch of parallel event handlers, this quickly becomes a mess.</p>
+<p>Blueprint graphs are in fact compiled to byte-code which is interpreted by a virtual machine written in C++. This vm uses an
+explicit stack, vm functions being of the form</p>
+<pre><code>void FUNC(FFrame &amp;Stack, void *Result). 
+</code></pre>
+<p>The 4.10 implementation creates the vm stack on
+the C++ call stack, using alloca to reserve space for the local variables. That explains why latent actions are only allowed at the
+top level, namely due to the fact that the instruction pointer and nothing else is preserved during the callback process. By preserving
+(a copy of) the entire vm call stack, this limitation can be removed. Note that local variables are shared between any such copies,
+only the instruction pointer of each frame is distinct. Now the copy must be allocated on the C++ heap rather than its stack in order to
+persist until the callback occurs.</p>
+<p>I've created a <a href='https://github.com/unktomi/Latent-Actions-Cont'>fork of 4.10</a> that makes the rather small changes necessary to enable the general use of latent actions.
+In addition, it contains some experimental Blueprint nodes to enable using continuations directly in blueprints.
+Continuations in a sense generalize function &quot;Return&quot; nodes and in fact can be used in place of them.
+Here is an example of a normal return node:</p>
+<p><img src="img/Cont0.PNG" alt=""></p>
+<p>The below produces the same result via an explicit continuation:</p>
+<p><img src="img/Cont1.PNG" alt=""></p>
+<p>Here <em>Return Integer</em> is a function - which however itself does not return to its caller (hence it has no output pin). As you can see <em>Get Current Continuation</em> gives you a <em>Continuation</em> object that represents what will happen when the current function (in this case <em>Foo</em>) returns. This object can be stored in a variable and otherwise passed around. It provides a bunch of <em>Return</em> methods like <em>Return Integer</em> that you can call later - when you do it's as if you jump back in time and return again from the function (i.e. in this case <em>Foo</em>). You can actually do this more than once if you like and pass a different return value each time.</p>
+<p>As an example we can implement coroutines just with Blueprints.</p>
+<p><img src="img/Coroutine1.PNG" alt=""></p>
+<p>Here we have two Continuation variables <em>Y</em> and <em>R</em>. <em>Y</em> represents the continuation of a <em>Yield</em> operation and <em>R</em> represents that of a <em>Wait for</em> operation. The implementation of the <em>Yield</em> operations save their continuation in <em>Y</em>, and of the <em>Wait for</em> in <em>R</em>:</p>
+<p><img src="img/Coroutine2.PNG" alt=""></p>
+<p><em>Run</em> is an abstract function the user implements in which <em>Yield</em> is called. <em>Wait for</em> is called from an event such as <em>Tick</em> to resume the coroutine.</p>
