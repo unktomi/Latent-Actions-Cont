@@ -1,4 +1,5 @@
 <h3>First class continuations in UE-4 Blueprints</h3>
+<h4>Latent Actions</h4>
 <p>UE-4 Blueprints have a concept called &quot;Latent Actions&quot;, one of the simplest being <em>Delay</em> shown below which suspends
 the current Blueprint for the specified number of seconds and then continues with whatever is connected to the <em>Completed</em> pin.</p>
 <p><img src="img/Delay.PNG" alt=""></p>
@@ -16,22 +17,23 @@ the C++ call stack, using <code>alloca</code> to reserve space for the local var
 top level, namely due to the fact that the instruction pointer and nothing else is preserved while the callback is pending. By preserving
 (a copy of) the entire vm call stack, this limitation can be removed. Note that should we choose to make multiple copies of a call stack, the local variables can be shared, only the instruction pointers need be distinct. Of course all such copies must be allocated on the C++ heap rather than the C++ stack in order to
 persist until the callback occurs.</p>
-<p>I've created a <a href='https://github.com/unktomi/Latent-Actions-Cont'>fork of 4.10</a> that makes the rather small changes necessary to enable the general use of latent actions.
-In addition, it contains some experimental Blueprint nodes to enable using continuations directly in blueprints, which among other things allows you to create your own latent actions using only Blueprints.
+<p>I've created a <a href='https://github.com/unktomi/Latent-Actions-Cont'>fork of 4.10</a> that makes the rather small changes necessary to enable the general use of latent actions.In addition, it contains some experimental Blueprint nodes to enable using continuations directly in blueprints, which among other things allows you to create your own latent actions using only Blueprints.</p>
+  <h4>Continuations</h4>
 Continuations in a sense generalize function &quot;Return&quot; nodes and in fact can be used in place of them.
 Here is an example of a normal return node:</p>
 <p><img src="img/Cont0.PNG" alt=""></p>
 <p>The below produces the same result via an explicit continuation (well, not quite the same - it returns 43)</p>
 <p><img src="img/Cont1.PNG" alt=""></p>
 <p>Here <em>Return Integer</em> is a function - which however itself does not return to its caller (hence it has no output pin). As you can see <em>Get Current Continuation</em> gives you a <em>Continuation</em> object - it represents what will happen when the current function (in this case <em>Foo</em>) returns. This object can be stored in a variable and otherwise passed around. It provides a bunch of <em>Return</em> methods like <em>Return Integer</em> that you can call later - when you do it's as if you jump back in time and return again from the function (i.e. in this case <em>Foo</em>). You can actually do this more than once if you like and pass a different return value each time.</p>
-<p>As an example we can implement coroutines with just Blueprints.</p>
+<p>As an example we can implement coroutines with just Blueprints:</p>
+<h4>Coroutines</h4>
 <p><img src="img/Coroutine1.PNG" alt=""></p>
 <p>Here we have two Continuation variables <em>Y</em> and <em>R</em>. <em>Y</em> represents the continuation of a <em>Yield</em> operation and <em>R</em> represents that of a <em>Wait for</em> operation. The implementation of the <em>Yield</em> operations save their continuation in <em>Y</em>, and the <em>Wait for</em> in <em>R</em>:</p>
 <p><img src="img/Coroutine2.PNG" alt=""></p>
 <p><em>Run</em> is an abstract function the user implements in which <em>Yield</em> should be called. <em>Wait for</em> is intended to be called from an event such as <em>Tick</em> to resume the coroutine.</p><p> As you can see, the <i>Yield</i> operations call the <i>R</i> Continuation which causes the Blueprint to "return" from <i>Wait for</i> and the <i>Wait for</i> operations call the <i>Y</i> continuation which causes <i>Yield</i> to "return" and <i>Run</i> to resume.</p>
-<p>As an aside, this example also shows why it'd be nice if the Blueprints type system supported type variables - the Coroutine class could be parameterized on its input and output types, i.e. <code>Coroutine&lt;Input, Output&gt;</code> and we'd have a single pair of <i>Yield</i> and <i>Wait for</i> functions. In fact, with the current type system <i>Yield Struct</i> can't even be declared.</p>.
-<p>
-  As mentioned, it's also possible to use continuations to implement your own latent actions with only Blueprints. Below is an example that provides a latent action wrapping <code>MediaPlayer::OpenURL</code>. 
+<p>As an aside, this example also shows why it'd be nice if the Blueprints type system supported type variables - the Coroutine class could be parameterized on its input and output types, i.e. <code>Coroutine&lt;Input, Output&gt;</code> and we'd have a single pair of <i>Yield</i> and <i>Wait for</i> functions. In fact, with the current type system <i>Yield Struct</i> can't even be declared.
+<h4>Blueprint latent actions</h4>
+<p>As mentioned, it's also possible to use continuations to implement your own latent actions with only Blueprints. Below is an example that provides a latent action wrapping <code>MediaPlayer::OpenURL</code>. 
 <p>The <code>MediaPlayer</code> API provides an event <code>OnMediaOpened</code> which is triggered by <code>OpenURL</code> and fires when the media is successfully opened. Since the url may well be an http url to a remote server and require network operations this must happen asynchronously.
   Other <code>MediaPlayer</code> operations such as <code>Seek</code>, <code>Play</code>, <code>Pause</code>, <code>Set Rate</code> cannot be called until the media is successfully opened. This is a pita, since we would have to tack such calls onto the event handler, and if they are triggered by other events such as user input we have a mess on our hands. We can improve this situation by making the asynchronous calls latent actions, and then we can use it like this:
 </p>
@@ -51,3 +53,11 @@ Here we create an Actor that wraps a mediaplayer and also has a <code>Continuati
   <img src="img/MediaOpenURL.PNG"/>
 </p>
 <p>It calls <code>MediaPlayer::OpenURL</code> and if it succeeds saves the current continuation and calls <code>Continuation::Exit</code>. <code>Exit</code> terminates the currently executing Blueprint (as you saw above - it will be resumed  from the event handler).
+</p>
+<h4>Parallel latent actions</h4>
+It can be more efficient to run your latent actions in parallel. For example, if you need to perform two network round trips, you could start both of them simultaneously and then combine their results when both have completed. However, since latent actions don't resume the Blueprint until they complete you wouldn't normally be able to do that with latent actions. To enable this we provide (experimental) <i>Fork</i> and <i>Join</i> nodes.
+<p>
+  <img src="img/ForkJoin.PNG"/>
+</p>
+<p>
+ <i>Fork</i> behaves like a <i>Sequence</i> node however all of its output wires will be executed before the Blueprint suspends even if some contain latent actions. <i>Join</i> in turn keeps the Blueprint suspended until all of the branches of its corresponding <i>Fork</i> have completed. 
