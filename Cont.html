@@ -7,7 +7,7 @@ the current Blueprint for the specified number of seconds and then continues wit
 Here is another example from a plugin, which suspends the Blueprint during a network operation and then continues when the result is
 available:</p>
 <p><img src="img/ApplyURL.PNG" alt=""></p>
-<p>In UE-4.10, latent action nodes are only allowed at the top level of a Blueprint &quot;event graph&quot;. They become inaccessible inside of functions. This is unfortunate because you are forced to use essentially global variables in such cases, and since an event graph contains a bunch of parallel event handlers, this quickly becomes a mess.</p>
+<p>In UE-4.10, latent action nodes are only allowed at the top level of a Blueprint <a href='https://docs.unrealengine.com/latest/INT/Engine/Blueprints/UserGuide/EventGraph/index.html'>event graph</a>. They become inaccessible inside of <a href='https://docs.unrealengine.com/latest/INT/Engine/Blueprints/UserGuide/Functions/index.html'>functions</a>. This is unfortunate because you are forced to use essentially global variables in such cases, and since an event graph contains a bunch of parallel event handlers, this quickly becomes a mess.</p>
 <p>Blueprint graphs are in fact compiled to byte-code which is interpreted by a virtual machine written in C++. This vm uses an
 explicit stack, vm functions being of the form</p>
 <pre><code>void FUNC(FFrame &amp;Stack, void *Result). 
@@ -17,7 +17,7 @@ the C++ call stack, using <code>alloca</code> to reserve space for the local var
 top level, namely due to the fact that the instruction pointer and nothing else is preserved while the callback is pending. By preserving
 (a copy of) the entire vm call stack, this limitation can be removed. Note that should we choose to make multiple copies of a call stack, the local variables can be shared, only the instruction pointers need be distinct. Of course all such copies must be allocated on the C++ heap rather than the C++ stack in order to
 persist until the callback occurs.</p>
-<p>I've created a <a href='https://github.com/unktomi/Latent-Actions-Cont'>fork of 4.10</a> that makes the rather small changes necessary to enable the general use of latent actions.In addition, it contains some experimental Blueprint nodes to enable using continuations directly in blueprints, which among other things allows you to create your own latent actions using only Blueprints.</p>
+<p>I've created a <a href='https://github.com/unktomi/Latent-Actions-Cont'>fork of 4.10</a> that makes the rather small changes necessary to enable the general use of latent actions. In addition, it contains some experimental Blueprint nodes to enable using continuations directly in blueprints, which among other things allows you to create your own latent actions using only Blueprints.</p>
   <h4>Continuations</h4>
 Continuations in a sense generalize function &quot;Return&quot; nodes and in fact can be used in place of them.
 Here is an example of a normal return node:</p>
@@ -41,7 +41,8 @@ Here is an example of a normal return node:</p>
 <img src="img/OpenURL.PNG"/>
 </p>
 <p>
-Here we create an Actor that wraps a mediaplayer and also has a <code>Continuation</code> variable called <code>Kont</code>(which is the continuation of our <code>OpenUrl</code>)</p>
+This way when <i>Seek</i> is called we know that the media has already been opened successfully (assuming <code>Succeeded<code> is <code>true</code>).
+To accomplish this we create an Actor that wraps a <code>MediaPlayer</code>x and also has a <code>Continuation</code> variable called <code>Kont</code> (which is the continuation of our <code>OpenUrl</code>)</p>
 <p>
   <img src="img/MediaEventGraph.PNG"/>
   
@@ -60,4 +61,4 @@ It can be more efficient to run your latent actions in parallel. For example, if
   <img src="img/ForkJoin.PNG"/>
 </p>
 <p>
- <i>Fork</i> behaves like a <i>Sequence</i> node however all of its output wires will be executed before the Blueprint suspends even if some contain latent actions. <i>Join</i> in turn keeps the Blueprint suspended until all of the branches of its corresponding <i>Fork</i> have completed. 
+ <i>Fork</i> behaves like a <a href='https://docs.unrealengine.com/latest/INT/Engine/Blueprints/UserGuide/FlowControl/index.html#sequence'>Sequence</a> node however all of its output wires will be executed before the Blueprint suspends even if some contain latent actions. <i>Join</i> in turn keeps the Blueprint suspended until all of the branches of its corresponding <i>Fork</i> have completed. 
