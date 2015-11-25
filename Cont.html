@@ -15,7 +15,7 @@ explicit stack, vm functions being of the form</p>
 the C++ call stack, using <code>alloca</code> to reserve space for the local variables. That explains why latent actions are only allowed at the
 top level, namely due to the fact that the instruction pointer and nothing else is preserved while the callback is pending. By preserving
 (a copy of) the entire vm call stack, this limitation can be removed. Note that local variables are shared between any such copies,
-only the instruction pointer of each frame is distinct. Now the copy must be allocated on the C++ heap rather than the C++ stack in order to
+only the instruction pointer of each frame is distinct. Of course the copy must be allocated on the C++ heap rather than the C++ stack in order to
 persist until the callback occurs.</p>
 <p>I've created a <a href='https://github.com/unktomi/Latent-Actions-Cont'>fork of 4.10</a> that makes the rather small changes necessary to enable the general use of latent actions.
 In addition, it contains some experimental Blueprint nodes to enable using continuations directly in blueprints.
@@ -29,4 +29,4 @@ Here is an example of a normal return node:</p>
 <p><img src="img/Coroutine1.PNG" alt=""></p>
 <p>Here we have two Continuation variables <em>Y</em> and <em>R</em>. <em>Y</em> represents the continuation of a <em>Yield</em> operation and <em>R</em> represents that of a <em>Wait for</em> operation. The implementation of the <em>Yield</em> operations save their continuation in <em>Y</em>, and the <em>Wait for</em> in <em>R</em>:</p>
 <p><img src="img/Coroutine2.PNG" alt=""></p>
-<p><em>Run</em> is an abstract function the user implements in which <em>Yield</em> is called. <em>Wait for</em> is called from an event such as <em>Tick</em> to resume the coroutine. As you can see, the <i>Yield</i> operations call the <i>R</i> Continuation which causes the Blueprint to "return" from <i>Wait for</i> and the <i>Wait for</i> operations call the <i>R</i>Y</i> continuation which causes <i>Yield</i> to "return" and <i>Run</i> to resume.</p>
+<p><em>Run</em> is an abstract function the user implements in which <em>Yield</em> should be called. <em>Wait for</em> is intended to be called from an event such as <em>Tick</em> to resume the coroutine.</p><p> As you can see, the <i>Yield</i> operations call the <i>R</i> Continuation which causes the Blueprint to "return" from <i>Wait for</i> and the <i>Wait for</i> operations call the <i>R</i> continuation which causes <i>Yield</i> to "return" and <i>Run</i> to resume.</p>
