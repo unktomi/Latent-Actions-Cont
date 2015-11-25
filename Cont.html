@@ -35,14 +35,14 @@ Here is an example of a normal return node:</p>
 <h4>Blueprint latent actions</h4>
 <p>As mentioned, it's also possible to use continuations to implement your own latent actions with only Blueprints. Below is an example that provides a latent action wrapping <code>MediaPlayer::OpenURL</code>. 
 <p>The <code>MediaPlayer</code> API provides an event <code>OnMediaOpened</code> which is triggered by <code>OpenURL</code> and fires when the media is successfully opened. Since the url may well be an http url to a remote server and require network operations this must happen asynchronously.
-  Other <code>MediaPlayer</code> operations such as <code>Seek</code>, <code>Play</code>, <code>Pause</code>, <code>Set Rate</code> cannot be called until the media is successfully opened. This is a pita, since we would have to tack such calls onto the event handler, and if they are triggered by other events such as user input we have a mess on our hands. We can improve this situation by making the asynchronous calls latent actions, and then we can use it like this:
+  Other <code>MediaPlayer</code> operations such as <code>Seek</code>, <code>Play</code>, <code>Pause</code>, <code>Set Rate</code> cannot be called until the media is successfully opened. This is a pita, since we would have to tack such calls onto the event handler, and if they are triggered by other events such as user input we have a mess on our hands. We can improve this situation by making an <code>OpenUrl</code> latent action, and then we can use it like this:
 </p>
 <p>
 <img src="img/OpenURL.PNG"/>
 </p>
 <p>
 This way when <i>Seek</i> is called we know that the media has already been opened successfully (assuming <code>Succeeded<code> is <code>true</code>).
-To accomplish this we create an Actor that wraps a <code>MediaPlayer</code>x and also has a <code>Continuation</code> variable called <code>Kont</code> (which is the continuation of our <code>OpenUrl</code>)</p>
+To accomplish this we create an Actor that wraps a <code>MediaPlayer</code> and also has a <code>Continuation</code> variable called <i>Kont</i> (which is the continuation of our <code>OpenUrl</code>)</p>
 <p>
   <img src="img/MediaEventGraph.PNG"/>
   
