@@ -24,7 +24,7 @@ Here is an example of a normal return node:</p>
 <p><img src="img/Cont0.PNG" alt=""></p>
 <p>The below produces the same result via an explicit continuation (well, not quite the same - it returns 43)</p>
 <p><img src="img/Cont1.PNG" alt=""></p>
-<p>Here <em>Return Integer</em> is a function - which however itself does not return to its caller (hence it has no output pin). As you can see <em>Get Current Continuation</em> gives you a <em>Continuation</em> object - it represents what will happen when the current function (in this case <em>Foo</em>) returns. This object can be stored in a variable and otherwise passed around. It provides a bunch of <em>Return</em> methods like <em>Return Integer</em> that you can call later - when you do it's as if you jump back in time and return again from the function (i.e. in this case <em>Foo</em>). You can actually do this more than once if you like and pass a different return value each time.</p>
+<p>Here <em>Return Integer</em> is a function - which however itself does not return to its caller (hence it has no output pin). As you can see <em>Get Current Continuation</em> gives you a <em>Continuation</em> object - it represents what will happen when the current function (in this case <em>Foo</em>) returns. This object can be stored in a variable and otherwise passed around. As shown, you can use it before a function returns, but it provides a bunch of <em>Return</em> methods like <em>Return Integer</em> that you can also call later (after the function has returned!) - when you do it's as if you jump back in time and return again from the function (i.e. in this case <em>Foo</em>). You can actually do this more than once if you like and pass a different return value each time.</p>
 <p>As an example we can implement coroutines with just Blueprints:</p>
 <h4>Coroutines</h4>
 <p><img src="img/Coroutine1.PNG" alt=""></p>
@@ -32,6 +32,18 @@ Here is an example of a normal return node:</p>
 <p><img src="img/Coroutine2.PNG" alt=""></p>
 <p><em>Run</em> is an abstract function the user implements in which <em>Yield</em> should be called. <em>Wait for</em> is intended to be called from an event such as <em>Tick</em> to resume the coroutine.</p><p> As you can see, the <i>Yield</i> operations call the <i>R</i> Continuation which causes the Blueprint to "return" from <i>Wait for</i> and the <i>Wait for</i> operations call the <i>Y</i> continuation which causes <i>Yield</i> to "return" and <i>Run</i> to resume.</p>
 <p>As an aside, this example also shows why it'd be nice if the Blueprints type system supported type variables - the Coroutine class could be parameterized on its input and output types, i.e. <code>Coroutine&lt;Input, Output&gt;</code> and we'd have a single pair of <i>Yield</i> and <i>Wait for</i> functions. In fact, with the current type system <i>Yield Struct</i> can't even be declared.
+<p>
+  Here is an example coroutine which yields an integer from a deeply nested loop:
+</p>
+<p>
+<img src="img/Loop.PNG"/>
+</p>
+<p>
+  And here is some example code which creates an instance of this coroutine and then resumes it each frame, waiting for the next integer value to be yielded and then printing it: 
+</p>
+<p>
+<img src="img/Wait.PNG"/>
+</p>
 <h4>Blueprint latent actions</h4>
 <p>As mentioned, it's also possible to use continuations to implement your own latent actions with only Blueprints. Below is an example that provides a latent action wrapping <code>MediaPlayer::OpenURL</code>. 
 <p>The <code>MediaPlayer</code> API provides an event <code>OnMediaOpened</code> which is triggered by <code>OpenURL</code> and fires when the media is successfully opened. Since the url may well be an http url to a remote server and require network operations this must happen asynchronously.
