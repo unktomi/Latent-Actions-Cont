@@ -33,7 +33,7 @@ Here is an example of a normal return node:</p>
 <p><em>Run</em> is an abstract function the user implements in which <em>Yield</em> should be called. <em>Wait for</em> is intended to be called from an event such as <em>Tick</em> to resume the coroutine.</p><p> As you can see, the <i>Yield</i> operations call the <i>R</i> Continuation which causes the Blueprint to "return" from <i>Wait for</i> and the <i>Wait for</i> operations call the <i>Y</i> continuation which causes <i>Yield</i> to "return" and <i>Run</i> to resume.</p>
 <p>As an aside, this example also shows why it'd be nice if the Blueprints type system supported type variables - the Coroutine class could be parameterized on its input and output types, i.e. <code>Coroutine&lt;Input, Output&gt;</code> and we'd have a single pair of <i>Yield</i> and <i>Wait for</i> functions. In fact, with the current type system <i>Yield Struct</i> can't even be declared.
 <p>
-  Here is an example coroutine which yields an integer from a deeply nested loop:
+  Here is an example coroutine which yields an integer from an infinite loop:
 </p>
 <p>
 <img src="img/Loop.PNG"/>
