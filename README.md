@@ -9,3 +9,4 @@ TestCoroutine Scene - Shows an example of Lua-like coroutines
 
 TestFork Scene - Shows an example of running latent actions in parallel with Fork and Join nodes
 
+A bit of [documentation](http://unktomi.github.io/Latent-Actions-Cont/Cont.html)
